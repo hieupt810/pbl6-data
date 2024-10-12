@@ -26,9 +26,7 @@ class Driver:
         self.__driver.get(url)
         self.__driver.implicitly_wait(2)
 
-    def find_elements_by_css_selector(
-        self, selector: str, max_length: int = MAX_LENGTH
-    ):
+    def find_by_css_selector(self, selector: str, max_length: int = MAX_LENGTH):
         while True:
             list_elements = self.__driver.find_elements(By.CSS_SELECTOR, selector)
             if len(list_elements) >= max_length:
@@ -38,7 +36,7 @@ class Driver:
 
         return self.__driver.find_elements(By.CSS_SELECTOR, selector)[:max_length]
 
-    def find_element_by_css_selector(self, selector: str):
+    def find_one_by_css_selector(self, selector: str):
         return self.__driver.find_element(By.CSS_SELECTOR, selector)
 
     def close(self):

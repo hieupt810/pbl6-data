@@ -5,29 +5,20 @@ from constants.selector import Selector
 from utils.driver import Driver
 from utils.environment import Environment
 
-if __name__ == "__main__":
-    driver = Driver()
 
+def crawl_products_handler(event, context):
+    driver = Driver()
     try:
         with psycopg.connect(Environment.DATABASE_URL) as conn:
             with conn.cursor() as cur:
                 for link in LINK:
                     driver.open_new_tab(link)
 
-                    pictures = driver.find_elements_by_css_selector(
-                        Selector.PRODUCT_PICTURE
-                    )
-                    subjects = driver.find_elements_by_css_selector(
-                        Selector.PRODUCT_SUBJECT
-                    )
-                    prices = driver.find_elements_by_css_selector(
-                        Selector.PRODUCT_PRICE
-                    )
-                    min_order = driver.find_elements_by_css_selector(
-                        Selector.PRODUCT_MIN_ORDER
-                    )
-                    urls = driver.find_elements_by_css_selector(Selector.PRODUCT_URL)
-
+                    pictures = driver.find_by_css_selector(Selector.PRODUCT_PICTURE)
+                    subjects = driver.find_by_css_selector(Selector.PRODUCT_SUBJECT)
+                    prices = driver.find_by_css_selector(Selector.PRODUCT_PRICE)
+                    min_order = driver.find_by_css_selector(Selector.PRODUCT_MIN_ORDER)
+                    urls = driver.find_by_css_selector(Selector.PRODUCT_URL)
                     assert (
                         len(pictures)
                         == len(subjects)
@@ -52,3 +43,5 @@ if __name__ == "__main__":
                     driver.close_current_tab()
     finally:
         driver.close()
+
+    return {"status": 200}

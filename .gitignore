@@ -1,6 +1,9 @@
 __pycache__/
-*.pyc
+package/
 venv/
+
+*.pyc
+*.csv
+
 .env
 .*.local
-*.csv
