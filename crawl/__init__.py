@@ -1,47 +1,47 @@
 import psycopg
 
-from constants import LINK, MAX_LENGTH
-from constants.selector import Selector
 from utils.driver import Driver
 from utils.environment import Environment
+from utils.load_json import load_json
 
 
-def crawl_products_handler(event, context):
+def crawl_products(website: str, MAX_LENGTH: int = 500):
     driver = Driver()
     try:
+        data = load_json(website)
         with psycopg.connect(Environment.DATABASE_URL) as conn:
             with conn.cursor() as cur:
-                for link in LINK:
+
+                for link in data["categories"]:
                     driver.open_new_tab(link)
 
-                    pictures = driver.find_by_css_selector(Selector.PRODUCT_PICTURE)
-                    subjects = driver.find_by_css_selector(Selector.PRODUCT_SUBJECT)
-                    prices = driver.find_by_css_selector(Selector.PRODUCT_PRICE)
-                    min_order = driver.find_by_css_selector(Selector.PRODUCT_MIN_ORDER)
-                    urls = driver.find_by_css_selector(Selector.PRODUCT_URL)
+                    titles = driver.find_by_css_selector(data["title"])
+                    images = driver.find_by_css_selector(data["image"])
+                    prices = driver.find_by_css_selector(data["price"])
+                    hrefs = driver.find_by_css_selector(data["href"])
+                    min_orders = driver.find_by_css_selector(data["min_order"])
                     assert (
-                        len(pictures)
-                        == len(subjects)
+                        len(titles)
+                        == len(images)
                         == len(prices)
-                        == len(min_order)
-                        == len(urls)
+                        == len(hrefs)
+                        == len(min_orders)
                     )
                     for i in range(MAX_LENGTH):
                         cur.execute(
-                            "INSERT INTO products (name, image, price, min_order, url) VALUES (%s, %s, %s, %s, %s)",
+                            "INSERT INTO products (title, image, price, min_order, href) VALUES (%s, %s, %s, %s, %s)",
                             (
-                                subjects[i].text,
-                                pictures[i].get_attribute("src"),
+                                titles[i].text,
+                                images[i].get_attribute("src"),
                                 prices[i].text,
-                                min_order[i].text,
-                                urls[i].get_attribute("href"),
+                                hrefs[i].get_attribute("href"),
+                                min_orders[i].text,
                             ),
                         )
                         conn.commit()
-                        print(f"Inserted data {i + 1}/{MAX_LENGTH}")
 
                     driver.close_current_tab()
+
+        print(f"Crawled {website} successfully.")
     finally:
         driver.close()
-
-    return {"status": 200}
